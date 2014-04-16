@@ -3,3 +3,4 @@
 .ghci
 dist
 cabal.sandbox.config
+log

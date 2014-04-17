@@ -81,8 +81,7 @@ drawConiferCmd  name = ("../conifer/.cabal-sandbox/bin/individual",
                         ["-w", show 400, "-o", name, "-u"])
 
 drawConiferToFile :: FilePath -> String -> String -> IO String
-drawConiferToFile dir prefix ud = do
-    name <- (uniqueName prefix)
+drawConiferToFile dir name ud = do
     let fname = name ++ ".svg"
     let svgPath = dir </> fname
     execDrawConifer svgPath ud

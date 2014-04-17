@@ -47,10 +47,12 @@ drawConifer = do
     where err   = liftIO writeError
           ok ud = do fname <- liftIO $ draw ud
                      writeBS (B.pack fname)
-          draw ud =  do name <- drawConiferToFile dir "conifer" (B.unpack ud)
+          draw ud =  do name <- uniqueName prefix
                         saveData (dir </> name ++ ".json") ud
-                        return name
+                        drawConiferToFile dir name (B.unpack ud)
+                        return $ name ++ ".svg"
           dir = "../conifer-ui/app/img"
+          prefix = "conifer"
 
 drawConifer_dumpParams :: Snap ()
 drawConifer_dumpParams = do

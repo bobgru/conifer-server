@@ -1,25 +1,10 @@
-{- # LANGUAGE MultiParamTypeClasses, RankNTypes #-}
-
 -- | Database testing utility functions and combinators
 module Utils
 where
 
---import Control.Monad (forM_,unless,when)
---import Data.Aeson (Value(..))
---import qualified Data.ByteString.Char8 as B
---import Data.Convertible.Base -- (convert)
---import qualified Data.HashMap.Strict as HM
 import Data.List (intercalate)
---import qualified Data.Map as M
---import Data.Maybe
---import qualified Data.Text as T
---import qualified Data.Vector as V
---import qualified Data.Yaml as Y
---import Database.HDBC
---import RMS.HDBCAesonAdapter
 import System.Exit
 import System.FilePath
---import System.IO
 import System.Process
 import System.Random
 import System.Time
@@ -28,7 +13,7 @@ import System.Time
 zeroExtend :: Int      -- ^ Desired length of string
            -> String   -- ^ Original string
            -> String
-zeroExtend n s = take n' ['0' | i <- [1..]] ++ s
+zeroExtend n s = take n' ['0' | _ <- [1..]] ++ s
     where n' = max 0 (n - length s)
 
 -- | Create a unique name using a prefix, the current date, and a random number.

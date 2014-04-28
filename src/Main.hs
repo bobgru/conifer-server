@@ -1,6 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
+import qualified Data.Aeson as A
+import           Data.Attoparsec.Char8
+import qualified Data.ByteString.Char8 as B'
+import qualified Data.ByteString.Lazy.Char8 as B
+import qualified Data.HashMap.Strict as HM
+import qualified Data.Text as T
 import           Control.Applicative
 import           Control.Monad.IO.Class (liftIO)
 import           Snap.Core
@@ -8,9 +14,6 @@ import           Snap.Util.FileServe
 import           Snap.Http.Server
 import           System.FilePath
 import           System.IO
---import           qualified Data.ByteString as B
-import           qualified Data.ByteString.Char8 as B
---import           Data.Maybe
 import           Utils
 
 main :: IO ()
@@ -46,37 +49,52 @@ drawConifer = do
     maybe err ok userdata
     where err   = liftIO writeError
           ok ud = do fname <- liftIO $ draw ud
-                     writeBS (B.pack fname)
+                     dims  <- liftIO $ extractDimsFromFile (dir </> fname)
+                     case parseDims (B'.pack dims) of
+                         Left e -> error e
+                         Right (width, height) -> do
+                             let d = mkData (B'.pack fname) width height
+                             let bs = A.encode d
+                             writeBS (B'.pack (B.unpack bs))
           draw ud =  do name <- uniqueName prefix
                         saveData (dir </> name ++ ".json") ud
-                        drawConiferToFile dir name (B.unpack ud)
+                        drawConiferToFile dir name (B'.unpack ud)
                         return $ name ++ ".svg"
           dir = "../conifer-ui/app/img"
           prefix = "conifer"
+
+mkData :: B'.ByteString -> Number -> Number -> A.Value
+mkData name width height =
+    A.Object $
+        HM.fromList [
+          ("name",   A.String $ T.pack (B'.unpack name))
+        , ("width",  A.Number $ width)
+        , ("height", A.Number $ height)
+        ]
 
 drawConifer_dumpParams :: Snap ()
 drawConifer_dumpParams = do
     rq <- getRequest
     let ps = rqPostParams rq
-    let ud = B.pack $ show ps
+    let ud = B'.pack $ show ps
     liftIO $ saveData_old ud
 
-saveData_old :: B.ByteString -> IO ()
+saveData_old :: B'.ByteString -> IO ()
 saveData_old s = do
     let filename = "userdata.json"
     h <- openFile filename WriteMode
-    B.hPutStr h s
+    B'.hPutStr h s
     hClose h
 
-saveData :: FilePath -> B.ByteString -> IO ()
+saveData :: FilePath -> B'.ByteString -> IO ()
 saveData f s = do
     h <- openFile f WriteMode
-    B.hPutStr h s
+    B'.hPutStr h s
     hClose h
 
 writeError :: IO ()
 writeError = do
     let filename = "userdata.json"
     h <- openFile filename WriteMode
-    B.hPutStr h "{\"error\": \"Could not get POST data\"}"
+    B'.hPutStr h "{\"error\": \"Could not get POST data\"}"
     hClose h

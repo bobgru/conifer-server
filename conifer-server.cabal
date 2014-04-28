@@ -26,7 +26,11 @@ Executable conifer-server
     old-time,
     random,
     process,
-    filepath
+    filepath,
+    attoparsec,
+    aeson,
+    unordered-containers,
+    text
 
 
   if impl(ghc >= 6.12.0)
